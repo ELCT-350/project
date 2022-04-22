@@ -19,7 +19,7 @@ public:
     
 
     // Viewable functions:
-    double GetSOC();
+    double GetSOC(double socOld, double wh, double h);
     double GetTerminalVoltage();
     double GetTerminalCurrent();
 
@@ -39,6 +39,17 @@ private:
     double RT2;
     double CT1;
     double CT2;
+
+    //private functions
+    double GetSOC(double socOld, double wH, double h);
+    double GetValue(double soc, double A, double k, double a0, double a1, double a2, double a3);
+    double GetVIN(double soc);
+    double GetRIN(double soc);
+    double GetRT1(double soc);
+    double GetRT2(double soc);
+    double GetCT1(double soc);
+    double GetCT2(double soc);
+    {
 };
 
 Battery::Battery(int positive, int negative, double wh, double soc0, double h)
