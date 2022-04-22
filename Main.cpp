@@ -1,11 +1,9 @@
 
 #include "Simulator.h"
 #include "Plotter.h"
-
-#include "VoltageSource.h"
-#include "Diode.h"
 #include "Resistor.h"
 #include "Capacitor.h"
+#include "Battery.h"
 
 /*
 
@@ -37,30 +35,33 @@ int main()
 	const double f = 1000;
 	const double R = 10;
 	const double C = 1e-3;
+	const double soc0 = 0.9;
+	double soc;
 
 	Plotter plotter("Project", 1000, 600);
 	plotter.SetLabels("vin (V)", "iR (A)", "vout (V)");
 
-	Simulator simulator(2, 0);
+	Simulator simulator(1, 0);
 
-	VoltageSource V1(1, 0, 0, Va, f);
-	Diode D1(1, 2);
-	Resistor R1(2, 0, R);
-	Capacitor C1(2, 0, C);
+	
 
-	simulator.AddDevice(V1);
-	simulator.AddDevice(D1);
+	Resistor R1(1, 0, R);
+	Capacitor C1(1, 0, C);
+	Battery B1(1, 0, 8.1, soc0, h);
+	soc = soc0;
+
+	simulator.AddDevice(B1);
 	simulator.AddDevice(R1);
 	simulator.AddDevice(C1);
-
+	B1.Init();
 	simulator.Init(h, tmax);
 
 	while (simulator.IsRunning())
 	{
-		plotter.AddRow(simulator.GetTime(), V1.GetVoltage(),
-			R1.GetCurrent(), C1.GetVoltage());
-		
+		plotter.AddRow(simulator.GetTime(), B1.GetTerminalVoltage(),
+			B1.GetTerminalCurrent(), B1.GetSOC(soc));
 		simulator.Step();
+		soc = B1.GetSOC(soc);
 	}
 
 	plotter.Plot();
