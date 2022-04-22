@@ -11,7 +11,7 @@ public:
 
     // Constructor:
 
-    Battery(int positive, int negative, double wh, double soc0);
+    Battery(int positive, int negative, double wh, double soc0, double h);
 
     // Device interface:
     void Init();
@@ -30,6 +30,7 @@ public:
     int negative;
     double wh;
     double soc0;
+    double h;
 
 private:
 
@@ -54,12 +55,11 @@ private:
     double GetRT2(double soc);
     double GetCT1(double soc);
     double GetCT2(double soc);
-    {
-    };
+};
 
     Battery::Battery(int positive, int negative, double wh, double soc0, double h)
     {
-        this->postive = positive;
+        this->positive = positive;
         this->negative = negative;
         this->wh = wh;
         this->soc0 = soc0;
@@ -139,18 +139,18 @@ private:
 
     double Battery::GetTerminalVoltage()
     {
-        return GetStateDifference(nodei, nodej);
+        return GetStateDifference(positive, negative);
     }
 
     double Battery::GetTerminalCurrent()
     {
         // current = g * v - b:
-        return C / GetTimeStep() * GetVoltage() - GetBEquivalent(nodei);
+        return int5;
     }
 
     double Battery::GetSOC(double socOld, double wH, double h)
     {
-        return socOld + (GetVoltage() * GetCurrent() * h) / (wH * 3600);
+        return socOld + (GetTerminalVoltage() * GetTerminalCurrent() * h) / (wH * 3600);
     }
 
     double Battery::GetValue(double soc, double A, double k, double a0, double a1, double a2, double a3)
