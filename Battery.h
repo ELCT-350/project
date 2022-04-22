@@ -30,20 +30,30 @@ public:
     int negative;
     double wh;
     double soc0;
+
+private:
+
+    double soc;
+    double RIN;
+    double RT1;
+    double RT2;
+    double CT1;
+    double CT2;
 };
 
-Battery::Battery(int positive, int negative, double wh, double soc0)
+Battery::Battery(int positive, int negative, double wh, double soc0, double h)
 {
     this->postive = positive;
     this->negative = negative;
     this->wh = wh;
     this->soc0 = soc0;
+    this->h = h;
 }
 
 void Battery::Init()
 {
     // model open circuit with 0 conductance:
-
+    soc = soc0;
     AddJacobian(nodei, nodei, 0.0);
     AddJacobian(nodei, nodej, 0.0);
     AddJacobian(nodej, nodei, 0.0);
@@ -51,7 +61,14 @@ void Battery::Init()
 }
 
 void Battery::Step(double t, double dt)
-{
+{   
+    soc = GetSOC(soc, wh, dt);
+    RIN = GetRIN(soc);
+    RT1 = GetRT1(soc);
+    RT2 = GetRT1(soc);
+    CT1 = GetRT1(soc);
+    CT2 = GetRT1(soc);
+
     double g = C / dt;
     double b = g * GetStateDifference(nodei, nodej);  // g * v(t)
 
