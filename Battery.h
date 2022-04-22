@@ -1,10 +1,7 @@
 #include "Simulator.h"
 #include "Plotter.h"
+#include <math.h>
 
-#include "VoltageSource.h"
-#include "Diode.h"
-#include "Resistor.h"
-#include "Capacitor.h"
 class Battery : public Device
 {
 public:
@@ -19,7 +16,7 @@ public:
 
 
     // Viewable functions:
-    double GetSOC(double socOld, double wh, double h);
+    double GetSOC(double socOld);
     double GetTerminalVoltage();
     double GetTerminalCurrent();
 
@@ -27,7 +24,7 @@ public:
     // Member variables:
 
     int positive;   //also int4
-    int negative;
+    int negative;   //also int6
     double wh;
     double soc0;
     double h;
@@ -39,6 +36,7 @@ private:
     int int3;
     int int4;
     int int5;
+    int int6;
     double soc;
     double RIN;
     double RT1;
@@ -47,7 +45,7 @@ private:
     double CT2;
 
     //private functions
-    double GetSOC(double socOld, double wH, double h);
+    
     double GetValue(double soc, double A, double k, double a0, double a1, double a2, double a3);
     double GetVIN(double soc);
     double GetRIN(double soc);
@@ -75,14 +73,16 @@ private:
         int3 = GetNextNode();
         int4 = GetNextNode();
         int5 = GetNextNode();
+        int6 = GetNextNode();
     }
 
     void Battery::Step(double t, double h)
     {
 
         int4 = positive;
+        int6 = negative;
 
-        soc = GetSOC(soc, wh, h);
+        soc = GetSOC(soc);
         RIN = GetRIN(soc);
         RT1 = GetRT1(soc);
         RT2 = GetRT1(soc);
@@ -129,17 +129,22 @@ private:
         AddJacobian(int5, int1, 1);
         AddJacobian(int5, int5, 0);
 
+        AddJacobian(int5, int6, -1);
+        AddJacobian(int6, int5, -1);
+
+
         AddBEquivalent(int1, 0);
         AddBEquivalent(int2, b1);
         AddBEquivalent(int3, b3);
         AddBEquivalent(int4, -b2);
         AddBEquivalent(int5, GetVIN(soc));
+        AddBEquivalent(int6, 0);
     }
 
 
     double Battery::GetTerminalVoltage()
     {
-        return GetStateDifference(positive, negative);
+        return GetStateDifference(int4, int6);
     }
 
     double Battery::GetTerminalCurrent()
@@ -148,14 +153,14 @@ private:
         return int5;
     }
 
-    double Battery::GetSOC(double socOld, double wH, double h)
+    double Battery::GetSOC(double socOld)
     {
-        return socOld + (GetTerminalVoltage() * GetTerminalCurrent() * h) / (wH * 3600);
+        return socOld + (GetTerminalVoltage() * GetTerminalCurrent() * h) / (wh * 3600);
     }
 
     double Battery::GetValue(double soc, double A, double k, double a0, double a1, double a2, double a3)
     {
-        return A * exp(k * soc) + a0 + a1 * soc + a2 * (soc) ^ 2 + a3 * (soc) ^ 3;
+        return A * exp(k * soc) + a0 + a1 * soc + a2 * pow(soc,2.0) + a3 * pow(soc,3.0);
     }
 
     double Battery::GetVIN(double soc)
