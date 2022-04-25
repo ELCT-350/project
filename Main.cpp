@@ -29,10 +29,10 @@
 
 int main()
 {
-	const double h = .01;
-	const double tmax = 10;
+	const double h = .005;
+	const double tmax = 20;
 	const double f = 1000;
-	const double R = 1;
+	const double R = 0.5;
 	const double C = 1e-3;
 	const double soc0 = 0.9;
 	double soc;
@@ -45,14 +45,11 @@ int main()
 	
 
 	Resistor R1(1, 0, R);
-	Capacitor C1(1, 0, C);
 	Battery B1(1, 0, 8.1, soc0, h);
 	soc = soc0;
 
 	simulator.AddDevice(B1);
 	simulator.AddDevice(R1);
-	simulator.AddDevice(C1);
-	B1.Init();
 	simulator.Init(h, tmax);
 
 	while (simulator.IsRunning())

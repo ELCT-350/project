@@ -94,8 +94,8 @@ private:
         double g3 = 1 / RT2;
         double g4 = CT1 / h;
         double g5 = CT2 / h;
-        double b1 = g4 * (int2 - int3);  // g * v(t)
-        double b2 = g5 * (int3 - positive);  // g * v(t)
+        double b1 = g4 * GetStateDifference(int2, int3);  // g * v(t)
+        double b2 = g5 * GetStateDifference(int3, positive);  // g * v(t)
         double b3 = -b1 + b2;
 
         //RIN
@@ -124,16 +124,11 @@ private:
         AddJacobian(positive, int3, -g5);
         AddJacobian(positive, positive, g5);
         //Vin
-        AddJacobian(int1, int1, 0);
         AddJacobian(int1, int5, 1);
+        AddJacobian(negative, int5, -1); 
         AddJacobian(int5, int1, 1);
-        AddJacobian(int5, int5, 0);
-
         AddJacobian(int5, negative, -1);
-        AddJacobian(negative, int5, -1);
 
-
-        AddBEquivalent(int1, 0);
         AddBEquivalent(int2, b1);
         AddBEquivalent(int3, b3);
         AddBEquivalent(positive, -b2);
@@ -149,8 +144,7 @@ private:
 
     double Battery::GetTerminalCurrent()
     {
-        // current = g * v - b:
-        return int5;
+        return GetState(int5);
     }
 
     void Battery::UpdateSOC()
@@ -160,7 +154,7 @@ private:
 
     double Battery::GetValue(double soc, double A, double k, double a0, double a1, double a2, double a3)
     {
-        return A * exp(k * soc) + a0 + a1 * soc + a2 * pow(soc,2.0) + a3 * pow(soc,3.0);
+        return A * exp(k * soc) + a0 + a1 * soc + a2 * soc * soc + a3 * soc * soc * soc;
     }
 
     double Battery::GetVIN(double soc)
