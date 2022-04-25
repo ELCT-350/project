@@ -16,28 +16,28 @@ public:
 
 
     // Viewable functions:
-    double GetSOC(double socOld);
+    void UpdateSOC();
     double GetTerminalVoltage();
     double GetTerminalCurrent();
 
 
     // Member variables:
 
-    int positive;   //also int4
-    int negative;   //also int6
+    int positive;   //also positive
+    int negative;   //also negative
     double wh;
     double soc0;
     double h;
+    double soc;
 
 private:
 
     int int1;
     int int2;
     int int3;
-    int int4;
     int int5;
-    int int6;
-    double soc;
+  
+    
     double RIN;
     double RT1;
     double RT2;
@@ -71,18 +71,18 @@ private:
         int1 = GetNextNode();
         int2 = GetNextNode();
         int3 = GetNextNode();
-        int4 = GetNextNode();
+        //positive = GetNextNode();
         int5 = GetNextNode();
-        int6 = GetNextNode();
+        //negative = GetNextNode();
     }
 
     void Battery::Step(double t, double h)
     {
 
-        int4 = positive;
-        int6 = negative;
+        //positive = positive;
+        //negative = negative;
 
-        soc = GetSOC(soc);
+        UpdateSOC();
         RIN = GetRIN(soc);
         RT1 = GetRT1(soc);
         RT2 = GetRT1(soc);
@@ -95,7 +95,7 @@ private:
         double g4 = CT1 / h;
         double g5 = CT2 / h;
         double b1 = g4 * GetStateDifference(int2, int3);  // g * v(t)
-        double b2 = g5 * GetStateDifference(int3, int4);  // g * v(t)
+        double b2 = g5 * GetStateDifference(int3, positive);  // g * v(t)
         double b3 = -b1 + b2;
 
         //RIN
@@ -110,9 +110,9 @@ private:
         AddJacobian(int3, int3, g2);
         //RT1
         AddJacobian(int3, int3, g3);
-        AddJacobian(int3, int4, -g3);
-        AddJacobian(int4, int3, -g3);
-        AddJacobian(int4, int4, g3);
+        AddJacobian(int3, positive, -g3);
+        AddJacobian(positive, int3, -g3);
+        AddJacobian(positive, positive, g3);
         //CT1
         AddJacobian(int2, int2, g4);
         AddJacobian(int2, int3, -g4);
@@ -120,31 +120,31 @@ private:
         AddJacobian(int3, int3, g4);
         //CT2
         AddJacobian(int3, int3, g5);
-        AddJacobian(int3, int4, -g5);
-        AddJacobian(int4, int3, -g5);
-        AddJacobian(int4, int4, g5);
+        AddJacobian(int3, positive, -g5);
+        AddJacobian(positive, int3, -g5);
+        AddJacobian(positive, positive, g5);
         //Vin
         AddJacobian(int1, int1, 0);
         AddJacobian(int1, int5, 1);
         AddJacobian(int5, int1, 1);
         AddJacobian(int5, int5, 0);
 
-        AddJacobian(int5, int6, -1);
-        AddJacobian(int6, int5, -1);
+        AddJacobian(int5, negative, -1);
+        AddJacobian(negative, int5, -1);
 
 
         AddBEquivalent(int1, 0);
         AddBEquivalent(int2, b1);
         AddBEquivalent(int3, b3);
-        AddBEquivalent(int4, -b2);
+        AddBEquivalent(positive, -b2);
         AddBEquivalent(int5, GetVIN(soc));
-        AddBEquivalent(int6, 0);
+        AddBEquivalent(negative, 0);
     }
 
 
     double Battery::GetTerminalVoltage()
     {
-        return GetStateDifference(int4, int6);
+        return GetStateDifference(positive, negative);
     }
 
     double Battery::GetTerminalCurrent()
@@ -153,9 +153,9 @@ private:
         return int5;
     }
 
-    double Battery::GetSOC(double socOld)
+    void Battery::UpdateSOC()
     {
-        return socOld + (GetTerminalVoltage() * GetTerminalCurrent() * h) / (wh * 3600);
+        soc += (GetTerminalVoltage() * GetTerminalCurrent() * h) / (wh * 3600);
     }
 
     double Battery::GetValue(double soc, double A, double k, double a0, double a1, double a2, double a3)

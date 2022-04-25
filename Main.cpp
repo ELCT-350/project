@@ -29,17 +29,17 @@
 
 int main()
 {
-	const double h = 1e-6;
-	const double tmax = 5e-3;
+	const double h = .01;
+	const double tmax = 10;
 	const double Va = 10;
 	const double f = 1000;
-	const double R = 10;
+	const double R = 1;
 	const double C = 1e-3;
 	const double soc0 = 0.9;
 	double soc;
 
 	Plotter plotter("Project", 1000, 600);
-	plotter.SetLabels("vin (V)", "iR (A)", "vout (V)");
+	plotter.SetLabels("vbat", "Terminal Current (A)", "SOC");
 
 	Simulator simulator(1, 0);
 
@@ -59,9 +59,8 @@ int main()
 	while (simulator.IsRunning())
 	{
 		plotter.AddRow(simulator.GetTime(), B1.GetTerminalVoltage(),
-			B1.GetTerminalCurrent(), B1.GetSOC(soc));
+			B1.GetTerminalCurrent(), B1.soc);
 		simulator.Step();
-		soc = B1.GetSOC(soc);
 	}
 
 	plotter.Plot();
