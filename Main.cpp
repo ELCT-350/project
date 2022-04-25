@@ -31,7 +31,6 @@ int main()
 {
 	const double h = .01;
 	const double tmax = 10;
-	const double Va = 10;
 	const double f = 1000;
 	const double R = 1;
 	const double C = 1e-3;

@@ -108,7 +108,7 @@ private:
         AddJacobian(int2, int3, -g2);
         AddJacobian(int3, int2, -g2);
         AddJacobian(int3, int3, g2);
-        //RT1
+        //RT2
         AddJacobian(int3, int3, g3);
         AddJacobian(int3, positive, -g3);
         AddJacobian(positive, int3, -g3);
