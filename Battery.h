@@ -85,17 +85,17 @@ private:
         UpdateSOC();
         RIN = GetRIN(soc);
         RT1 = GetRT1(soc);
-        RT2 = GetRT1(soc);
-        CT1 = GetRT1(soc);
-        CT2 = GetRT1(soc);
+        RT2 = GetRT2(soc);
+        CT1 = GetCT1(soc);
+        CT2 = GetCT2(soc);
 
         double g1 = 1 / RIN;
         double g2 = 1 / RT1;
         double g3 = 1 / RT2;
         double g4 = CT1 / h;
         double g5 = CT2 / h;
-        double b1 = g4 * GetStateDifference(int2, int3);  // g * v(t)
-        double b2 = g5 * GetStateDifference(int3, positive);  // g * v(t)
+        double b1 = g4 * (int2 - int3);  // g * v(t)
+        double b2 = g5 * (int3 - positive);  // g * v(t)
         double b3 = -b1 + b2;
 
         //RIN
