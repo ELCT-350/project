@@ -50,6 +50,7 @@ public:
 
     void Init();
 
+
     // Viewable functions:
 
     double GetVoltage();
