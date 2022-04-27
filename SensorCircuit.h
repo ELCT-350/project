@@ -1,7 +1,5 @@
 // Simplified Battery Model
 
-#include "Simulator.h"
-
 class Battery : public Device
 
 {
@@ -64,6 +62,14 @@ public:
 
     double GetRin(double soc);
 
+    double GetRt1(double soc);
+
+    double GetRt2(double soc);
+
+    double GetCt1(double soc);
+
+    double GetCt2(double soc);
+
     // Member variables:
 
     int nodei;
@@ -74,13 +80,15 @@ public:
 
     int int3;
 
-    const double C1 = 1e-6;
-
-    const double C2 = 1e-6;
-
-    const double C3 = 1e-6;
-
-    const double h = 1e-2;
+    const double h = 1e-6;
+    const double tmax = 5e-3;
+    const double Va = 10;
+    const double f = 1000;
+    const double Rin = 10;
+    const double Rt1 = 10;
+    const double Rt2 = 10;
+    const double Ct1 = 1e-3;
+    const double Ct2 = 1e-3;
 
     double soci;
 
@@ -148,31 +156,31 @@ void Battery::Step(double t, double h)
 
     //R2||C1
 
-    AddJacobian(1, 1, g1 + (C1 / h));
+    AddJacobian(1, 1, g1 + (Ct1 / h));
 
-    AddJacobian(1, 3, -g1 - (C1 / h));
+    AddJacobian(1, 3, -g1 - (Ct1 / h));
 
-    AddJacobian(3, 1, -g1 - (C1 / h));
+    AddJacobian(3, 1, -g1 - (Ct1 / h));
 
-    AddJacobian(3, 3, g1 + (C1 / h));
+    AddJacobian(3, 3, g1 + (Ct1 / h));
 
-    AddBEquivalent(1, (C1 / h) * int1);
+    AddBEquivalent(1, (Ct1 / h) * int1);
 
-    AddBEquivalent(3, (C1 / h) * int1);
+    AddBEquivalent(3, (Ct1 / h) * int1);
 
     //R3||C2
 
-    AddJacobian(3, 3, g2 + (C2 / h));
+    AddJacobian(3, 3, g2 + (Ct2 / h));
 
-    AddJacobian(3, 4, -g2 - (C2 / h));
+    AddJacobian(3, 4, -g2 - (Ct2 / h));
 
-    AddJacobian(4, 3, -g2 - (C2 / h));
+    AddJacobian(4, 3, -g2 - (Ct2 / h));
 
-    AddJacobian(4, 4, g2 + (C2 / h));
+    AddJacobian(4, 4, g2 + (Ct2 / h));
 
-    AddBEquivalent(3, (C2 / h) * int3);
+    AddBEquivalent(3, (Ct2 / h) * int3);
 
-    AddBEquivalent(4, (-C2 / h) * int3);
+    AddBEquivalent(4, (-Ct2 / h) * int3);
 
     //
 
