@@ -1,0 +1,229 @@
+// Simplified Battery Model
+
+class Battery : public Device
+
+{
+
+    /*
+
+               (int1)   R(soc)
+
+             vi  o------VVV---o (nodepos)  vpos
+
+                +|
+
+       Vin(soc) ( ) o (int2) ibatt
+
+                 |
+
+                 '------------o (nodeneg)  vneg
+
+        output vector:
+
+
+
+           quantities:   indices:
+
+            [ vpos  ]    nodepos
+
+        x = [ vneg  ]    nodeneg
+
+            [ vi    ]    int1
+
+            [ ibatt ]    int2
+
+    */
+
+
+
+public:
+
+    // Constructor (external nodes and params):
+
+    Battery(int nodepos, int nodeneg, double soci);
+
+    // Device interface:
+
+    void Step(double t, double dt);
+
+    void Init();
+
+    // Viewable functions:
+
+    double GetVoltage();
+
+    double GetCurrent();
+
+    double GetSOC();
+
+    // f(soc) functions:
+
+    double GetVin(double soc);
+
+    double GetRin(double soc);
+
+    double GetRt1(double soc);
+
+    double GetRt2(double soc);
+
+    double GetCt1(double soc);
+
+    double GetCt2(double soc);
+
+    // Member variables:
+
+    int nodei;
+
+    int nodej;
+
+    int int1;
+
+    int int3;
+
+    const double h = 1e-6;
+    const double tmax = 5e-3;
+    const double Va = 10;
+    const double f = 1000;
+    const double Rin = 10;
+    const double Rt1 = 10;
+    const double Rt2 = 10;
+    const double Ct1 = 1e-3;
+    const double Ct2 = 1e-3;
+
+    double soci;
+
+    double soc;  // state of charge
+
+};
+
+Battery::Battery(int nodepos, int nodeneg, double soci)
+
+{
+
+    this->nodei = nodepos;
+
+    this->nodej = nodeneg;
+
+    this->soci = soci;
+
+}
+
+void Battery::Init()
+
+{
+
+    int1 = GetNextNode();
+
+    int3 = GetNextNode();
+
+    soc = soci;
+
+}
+
+void Battery::Step(double t, double h)
+
+{
+
+    double Vin = GetVin(soc);
+
+    double gin = 1 / GetRin(soc);
+
+    double g1 = 1 / GetRt1(soc);
+
+    double g2 = 1 / GetRt2(soc);
+
+    double wh = 8.1;
+
+    // Rin:
+
+    AddJacobian(0, 0, gin);
+
+    AddJacobian(0, 1, -gin);
+
+    AddJacobian(1, 0, -gin);
+
+    AddJacobian(1, 1, gin);
+
+    //Vin
+
+    AddJacobian(2, 0, 1);
+
+    AddJacobian(0, 2, 1);
+
+    AddBEquivalent(2, Vin);
+
+
+
+    //R2||C1
+
+    AddJacobian(1, 1, g1 + (Ct1 / h));
+
+    AddJacobian(1, 3, -g1 - (Ct1 / h));
+
+    AddJacobian(3, 1, -g1 - (Ct1 / h));
+
+    AddJacobian(3, 3, g1 + (Ct1 / h));
+
+    AddBEquivalent(1, (Ct1 / h) * int1);
+
+    AddBEquivalent(3, (Ct1 / h) * int1);
+
+    //R3||C2
+
+    AddJacobian(3, 3, g2 + (Ct2 / h));
+
+    AddJacobian(3, 4, -g2 - (Ct2 / h));
+
+    AddJacobian(4, 3, -g2 - (Ct2 / h));
+
+    AddJacobian(4, 4, g2 + (Ct2 / h));
+
+    AddBEquivalent(3, (Ct2 / h) * int3);
+
+    AddBEquivalent(4, (-Ct2 / h) * int3);
+
+    //
+
+    // update soc:
+
+    soc = soc + GetVoltage() * GetCurrent() * h / (wh * 3600);
+
+}
+
+double Battery::GetVoltage()
+
+{
+
+    return GetStateDifference(4, 2);
+
+}
+
+double Battery::GetCurrent()
+
+{
+
+    return GetState(int3);
+
+}
+
+double Battery::GetSOC()
+
+{
+
+    return soc;
+
+}
+
+double Battery::GetVin(double soc)
+
+{
+
+    return 3.8 * soc;  // simple linear model
+
+}
+
+double Battery::GetRin(double soc)
+
+{
+    return 0.1 + (1 - soc) * 0.01;  // simple linear model
+}
